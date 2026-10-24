@@ -48,6 +48,7 @@ export const api = {
   getState: () => request('/api/state'),
   addItem: (item) => request('/api/items', { method: 'POST', json: item }),
   consume: (id) => request(`/api/consume/${encodeURIComponent(id)}`, { method: 'POST' }),
+  donate: (id) => request(`/api/donate/${encodeURIComponent(id)}`, { method: 'POST' }),
   remove: (id) => request(`/api/items/${encodeURIComponent(id)}`, { method: 'DELETE' }),
   scanFile: (file) => {
     const form = new FormData();

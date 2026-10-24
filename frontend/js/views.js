@@ -337,6 +337,13 @@ export function impactView() {
       <div class="kpi"><p class="kpi-label">Общая экономия ${tag}</p><p class="kpi-value"><span data-key="i-saved" data-count="${stats.saved_tenge}">0</span>&nbsp;₸</p></div>
       <div class="kpi"><p class="kpi-label">Использовано вовремя ${tag}</p><p class="kpi-value"><span data-key="i-count" data-count="${stats.items_saved_count}">0</span>&nbsp;<small>${plural(stats.items_saved_count, 'продукт', 'продукта', 'продуктов')}</small></p></div>
       <div class="kpi"><p class="kpi-label">CO₂-экв., оценка ${tag}</p><p class="kpi-value"><span data-key="i-co2" data-count="${stats.co2_saved_kg}" data-dec="1">0</span>&nbsp;<small>кг</small></p></div>
+      <div class="kpi kpi-donate">
+        <div>
+          <p class="kpi-label">${icon('heart', 16)} Отдано нуждающимся ${tag}</p>
+          <p class="kpi-value"><span data-key="i-donated" data-count="${stats.donated_tenge}">0</span>&nbsp;₸</p>
+        </div>
+        <p class="kpi-note">${fmtNum(stats.meals_donated)} ${plural(stats.meals_donated, 'порция', 'порции', 'порций')} не попали на свалку, а достались тем, кому нужнее</p>
+      </div>
     </div>
     <div class="two-col two-col-wide">
       <section class="card">
@@ -363,6 +370,7 @@ export function impactView() {
         <li><strong>CO₂-экв.:</strong> вес продукта × ${CONFIG.CO2_KG_PER_KG_FOOD} кг CO₂-экв. на 1 кг еды. Это усреднённая <em>оценка</em>, а не научно точное значение: реальный след зависит от типа продукта и способа утилизации.</li>
         <li><strong>Под риском:</strong> сумма цен продуктов со статусами «Срочно» и «Скоро».</li>
         <li><strong>Статусы:</strong> ≤ ${CONFIG.URGENT_MAX_DAYS} дн. — срочно, ≤ ${CONFIG.WARNING_MAX_DAYS} дн. — скоро, иначе свежие.</li>
+        <li><strong>Отдано нуждающимся:</strong> сумма цен продуктов, переданных по кнопке «Отдать» — CO₂-экв. засчитывается так же, как и за съеденные, деньги — отдельно, в свою копилку.</li>
       </ul>
     </details>`;
 }
@@ -373,6 +381,7 @@ export function aboutView() {
     ['🧾', 'Добавьте продукты', 'Вручную или по фото чека — с ценой, весом и сроком годности.'],
     ['⏳', 'Следите за сроками', 'Цвет и счётчик дней подскажут, что нужно съесть первым.'],
     ['🍳', 'Готовьте без отходов', 'AI-шеф предложит блюдо из продуктов, которые скоро испортятся.'],
+    ['🤝', 'Не успели — отдайте', 'Кнопка «Отдать» рядом с «Съели»: продукт уходит не в мусорку, а тем, кому пригодится. CO₂-экв. всё равно засчитывается как предотвращённый.'],
     ['🌱', 'Смотрите эффект', 'Экономия в тенге и оценка предотвращённых выбросов CO₂-экв.'],
   ];
   return `<div class="page-head"><div><h1>Как это работает</h1><p class="muted">EcoFridge AI помогает семьям Астаны выбрасывать меньше еды.</p></div></div>

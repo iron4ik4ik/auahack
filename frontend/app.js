@@ -1,7 +1,7 @@
 import { CONFIG, esc, fmtTenge } from './js/config.js';
 import { onConnection } from './js/api.js';
 import {
-  S, subscribe, notify, view, loadLive, startDemo, exitDemo, addItem, consume, removeItem,
+  S, subscribe, notify, view, loadLive, startDemo, exitDemo, addItem, consume, donate, removeItem,
   generateRecipe, scanFile, demoReceiptCandidates, addDemoReceiptItems,
 } from './js/store.js';
 import { icon, toast, animateNumbers } from './js/ui.js';
@@ -213,6 +213,10 @@ const actions = {
   consume: (el) => guard(async () => {
     const item = await consume(el.dataset.id);
     if (item) toast(item.price_tenge > 0 ? `+${fmtTenge(item.price_tenge)} спасено в семейный бюджет!` : `«${item.name}» съеден — отлично!`);
+  }),
+  donate: (el) => guard(async () => {
+    const item = await donate(el.dataset.id);
+    if (item) toast(`🤝 «${item.name}» отправится тем, кому нужнее — не на свалку!`);
   }),
   remove: (el) => guard(async () => {
     const item = view().items.find((i) => i.id === el.dataset.id);

@@ -17,6 +17,7 @@ const PATHS = {
   clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   leaf: '<path d="M5 19C5 9 11 4 20 4c0 9-5 15-15 15zM5 19c2-4 5-7 9-9"/>',
   retry: '<path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/>',
+  heart: '<path d="M12 20.3S3.5 15.4 3.5 9.3A4.8 4.8 0 0 1 12 6a4.8 4.8 0 0 1 8.5 3.3c0 6.1-8.5 11-8.5 11z"/>',
 };
 export const icon = (name, size = 20) =>
   `<svg class="icon" width="${size}" height="${size}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${PATHS[name] || ''}</svg>`;
@@ -60,6 +61,7 @@ export function ItemCard(item, { pending = false, compact = false } = {}) {
         <p class="item-meta">${esc(item.category)} · ${fmtKg(item.weight_kg)}</p>
       </div>
       ${Badge(item.status)}
+      ${compact ? '' : `<button class="icon-btn" data-action="remove" data-id="${esc(item.id)}" ${pending ? 'disabled' : ''} aria-label="Удалить ${esc(item.name)}">${icon('trash', 18)}</button>`}
     </div>
     <div class="item-info">
       <span class="item-days">${icon('clock', 16)} ${daysLabel(item.days_left)}</span>
@@ -69,7 +71,8 @@ export function ItemCard(item, { pending = false, compact = false } = {}) {
       <button class="btn btn-primary btn-sm" data-action="consume" data-id="${esc(item.id)}" ${pending ? 'disabled aria-busy="true"' : ''}>
         ${icon('check', 16)} Съели${item.price_tenge > 0 && !compact ? ` · +${fmtTenge(item.price_tenge)}` : ''}
       </button>
-      ${compact ? '' : `<button class="btn btn-ghost btn-sm" data-action="remove" data-id="${esc(item.id)}" ${pending ? 'disabled' : ''} aria-label="Удалить ${esc(item.name)}">${icon('trash', 16)} Удалить</button>`}
+      ${compact ? '' : `<button class="btn btn-donate btn-sm" data-action="donate" data-id="${esc(item.id)}" ${pending ? 'disabled aria-busy="true"' : ''} title="Отдать тем, кому пригодится, вместо того чтобы выбросить">
+        ${icon('heart', 16)} Отдать</button>`}
     </div>
   </article>`;
 }

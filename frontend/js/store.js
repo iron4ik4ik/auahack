@@ -23,7 +23,7 @@ const delay = (ms) => new Promise((r) => setTimeout(r, ms));
 export function view() {
   const src = S.mode === 'demo' ? S.demo : S.live;
   const items = (src?.items ?? []);
-  const raw = src?.stats ?? { saved_tenge: 0, co2_saved_kg: 0, items_saved_count: 0 };
+  const raw = src?.stats ?? { saved_tenge: 0, co2_saved_kg: 0, items_saved_count: 0, donated_tenge: 0, meals_donated: 0 };
   return {
     items,
     counts: countByStatus(items),
@@ -32,6 +32,8 @@ export function view() {
       co2_saved_kg: raw.co2_saved_kg,
       items_saved_count: raw.items_saved_count,
       at_risk_tenge: atRiskTenge(items), // всегда считается из списка — единая логика
+      donated_tenge: raw.donated_tenge || 0,
+      meals_donated: raw.meals_donated || 0,
     },
   };
 }
@@ -117,6 +119,8 @@ function buildDemo() {
       saved_tenge: log.reduce((s, e) => s + e.price, 0),
       co2_saved_kg: Math.round(log.reduce((s, e) => s + e.co2, 0) * 100) / 100,
       items_saved_count: log.length,
+      donated_tenge: 0,
+      meals_donated: 0,
     },
   };
 }
@@ -168,6 +172,37 @@ export async function consume(id) {
     } else {
       setLive(await api.consume(id));
       pushEvent({ ts: Date.now(), price: item.price_tenge, co2: co2For(item.weight_kg) });
+    }
+    return item;
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 404) { await loadLive(); return null; } // уже обработан
+    throw e;
+  } finally {
+    S.pending.delete(id);
+    notify();
+  }
+}
+
+/** Возвращает продукт, который «отдали» вместо того чтобы выбросить, или null (если уже обработан). */
+export async function donate(id) {
+  if (S.pending.has(id)) return null;
+  const { items } = view();
+  const item = items.find((i) => i.id === id);
+  if (!item) return null;
+  S.pending.add(id);
+  notify();
+  try {
+    if (S.mode === 'demo') {
+      await delay(250);
+      S.demo.items = S.demo.items.filter((i) => i.id !== id);
+      S.demo.stats.donated_tenge += item.price_tenge;
+      S.demo.stats.co2_saved_kg = Math.round((S.demo.stats.co2_saved_kg + co2For(item.weight_kg)) * 100) / 100;
+      S.demo.stats.meals_donated += Math.max(1, Math.round(item.weight_kg / 0.4));
+      // в график попадает только CO₂ — деньги не считаются «сэкономленными себе»
+      S.demo.log.push({ ts: Date.now(), price: 0, co2: co2For(item.weight_kg) });
+    } else {
+      setLive(await api.donate(id));
+      pushEvent({ ts: Date.now(), price: 0, co2: co2For(item.weight_kg) });
     }
     return item;
   } catch (e) {

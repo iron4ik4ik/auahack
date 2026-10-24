@@ -61,6 +61,8 @@ def seed_state() -> dict:
             "at_risk_tenge": 4120,
             "co2_saved_kg": 6.4,
             "items_saved_count": 18,
+            "donated_tenge": 3200,
+            "meals_donated": 4,
         },
         "items": [
             make_item(1, "Молоко «Родина» 2.5%, 1л", "Молочные продукты", 680, 1.0, 1),
@@ -142,6 +144,22 @@ def api_consume(item_id: str):
         STATE["stats"]["co2_saved_kg"] + round(item["weight_kg"] * 2.5, 2), 2
     )
     STATE["stats"]["items_saved_count"] += 1
+    return get_state()
+
+
+@app.post("/api/donate/{item_id}")
+def api_donate(item_id: str):
+    """Отдать продукт, который семья не успевает съесть, вместо того чтобы его выбросить."""
+    index = next((i for i, it in enumerate(STATE["items"]) if it["id"] == item_id), None)
+    if index is None:
+        raise HTTPException(status_code=404, detail="Продукт не найден в холодильнике")
+
+    item = STATE["items"].pop(index)
+    STATE["stats"]["donated_tenge"] += item["price_tenge"]
+    STATE["stats"]["co2_saved_kg"] = round(
+        STATE["stats"]["co2_saved_kg"] + round(item["weight_kg"] * 2.5, 2), 2
+    )
+    STATE["stats"]["meals_donated"] += max(1, round(item["weight_kg"] / 0.4))
     return get_state()
 
 

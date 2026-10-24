@@ -103,6 +103,8 @@ a { color: inherit; }
 .btn-ghost:hover:not(:disabled) { background: #eef0e6; color: var(--ink); }
 .btn-danger { background: var(--danger); color: #fff; }
 .btn-danger:hover:not(:disabled) { background: #912018; }
+.btn-donate { background: var(--orange-bg); color: var(--orange); border-color: #f3d2a8; }
+.btn-donate:hover:not(:disabled) { background: var(--orange); color: #fff; }
 .btn-sm { min-height: 40px; padding: 0 12px; font-size: .88rem; }
 .btn-lg { min-height: 52px; padding: 0 22px; font-size: 1rem; }
 .icon-btn { width: 44px; height: 44px; border: 0; background: transparent; border-radius: 12px; cursor: pointer; font-size: 1.1rem; color: var(--muted); }
@@ -132,6 +134,10 @@ a { color: inherit; }
 .kpi-note a { text-decoration: underline; }
 .kpi-risk .kpi-value { color: var(--orange); }
 .kpi-tag { font-size: .68rem; text-transform: uppercase; letter-spacing: .04em; background: var(--warn-bg); color: var(--warn); padding: 2px 7px; border-radius: 6px; font-weight: 800; }
+.kpi-donate { background: var(--orange-bg); border-color: #f3d2a8; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
+.kpi-donate .kpi-value { color: var(--orange); }
+.kpi-donate .kpi-note { margin-top: 0; max-width: 32ch; }
+@media (min-width: 640px) { .kpi-donate { grid-column: 1 / -1; } }
 
 /* ---------- Блоки, сетки ---------- */
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow); display: block; }
@@ -154,6 +160,7 @@ a { color: inherit; }
 .item-warning { border-left-color: #EAAA08; }
 .item-fresh { border-left-color: #4C9F4A; }
 .item-top { display: flex; gap: 12px; align-items: flex-start; }
+.item-top .icon-btn { flex: none; }
 .item-icon { width: 44px; height: 44px; border-radius: 12px; background: #F0F2E8; display: grid; place-items: center; font-size: 24px; flex: none; }
 .item-main { min-width: 0; flex: 1; }
 .item-name { font-size: 1rem; font-weight: 700; color: var(--ink); overflow: hidden; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; word-break: break-word; }
@@ -162,7 +169,7 @@ a { color: inherit; }
 .item-days { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-weight: 600; }
 .item-price { font-weight: 800; color: var(--forest); }
 .item-actions { display: flex; gap: 8px; }
-.item-actions .btn-primary { flex: 1; }
+.item-actions .btn-primary, .item-actions .btn-donate { flex: 1; }
 .badge { flex: none; font-size: .72rem; font-weight: 800; padding: 3px 9px; border-radius: 999px; }
 .badge-urgent { background: var(--danger-bg); color: var(--danger); }
 .badge-warning { background: var(--warn-bg); color: var(--warn); }
