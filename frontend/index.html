@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>EcoFridge AI · Astana</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet" />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: {
+        fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'Inter', 'sans-serif'] },
+        colors: { eco: '#10B981', amber2: '#F59E0B', coral: '#EF4444' }
+      } }
+    };
+  </script>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body class="font-sans text-slate-800 antialiased min-h-screen">
+
+  <!-- HEADER -->
+  <header class="sticky top-0 z-30 backdrop-blur bg-white/80 border-b border-emerald-100">
+    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 grid place-items-center text-xl shadow-lg shadow-emerald-500/30">🥬</div>
+        <div>
+          <h1 class="font-display font-extrabold text-lg leading-tight">EcoFridge <span class="text-eco">AI</span> <span class="text-slate-400 font-semibold">· Astana</span></h1>
+          <p class="text-xs text-slate-500">Умный холодильник для семьи</p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2 flex-wrap">
+        <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200">👑 Семейный Pro · 1 499 ₸/мес</span>
+        <span id="api-status" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
+          <span id="api-dot" class="w-2 h-2 rounded-full bg-slate-400"></span><span id="api-text">Подключение…</span>
+        </span>
+      </div>
+    </div>
+  </header>
+
+  <main class="max-w-6xl mx-auto px-4 py-8 space-y-8">
+
+    <!-- KPI -->
+    <section class="grid gap-4 md:grid-cols-3">
+      <div class="kpi rounded-3xl p-6 text-white bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-xl shadow-emerald-500/25">
+        <p class="text-sm font-semibold opacity-90">💰 Спасено бюджета семьи</p>
+        <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-saved">0</span> ₸</p>
+        <p class="text-xs mt-2 opacity-80">Деньги, которые не улетели в мусорку</p>
+      </div>
+      <div class="kpi rounded-3xl p-6 text-white bg-gradient-to-br from-coral to-orange-500 shadow-xl shadow-red-500/25">
+        <p class="text-sm font-semibold opacity-90">⚠️ Сейчас под угрозой порчи</p>
+        <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-risk">0</span> ₸</p>
+        <p class="text-xs mt-2 opacity-80">Сумма срочных и скоро портящихся продуктов</p>
+      </div>
+      <div class="kpi rounded-3xl p-6 bg-gradient-to-br from-teal-50 to-emerald-100 border border-emerald-200 text-emerald-900 shadow-xl shadow-emerald-200/40">
+        <p class="text-sm font-semibold">🌱 Предотвращено выбросов метана</p>
+        <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-co2">0</span> <span class="text-lg">кг CO₂-экв</span></p>
+        <p class="text-xs mt-2 text-emerald-700"><span id="kpi-count">0</span> продуктов спасено от полигона Астаны</p>
+      </div>
+    </section>
+
+    <!-- ACTIONS -->
+    <section class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
+      <h2 class="font-display font-extrabold text-lg mb-4">Быстрые действия</h2>
+      <div class="flex flex-col lg:flex-row gap-3">
+        <button id="btn-demo" class="btn-glow flex-1 px-6 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[.98] transition">
+          ⚡ Демо за 1 клик: Сканировать чек Magnum (Kaspi QR / Фото)
+        </button>
+        <label class="px-5 py-4 rounded-2xl font-semibold text-center cursor-pointer border-2 border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition">
+          📷 Загрузить фото чека / холодильника
+          <input id="file-input" type="file" accept="image/*" class="hidden" />
+        </label>
+        <button id="btn-add" class="px-5 py-4 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition">+ Добавить продукт вручную</button>
+      </div>
+    </section>
+
+    <!-- FRIDGE -->
+    <section>
+      <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
+        <h2 class="font-display font-extrabold text-xl">🧊 Умный холодильник <span id="items-count" class="text-slate-400 text-base font-semibold"></span></h2>
+        <div id="filters" class="flex flex-wrap gap-2">
+          <button data-filter="all" class="filter-btn active">Все</button>
+          <button data-filter="urgent" class="filter-btn">🔴 Срочно (1 день)</button>
+          <button data-filter="warning" class="filter-btn">🟡 Скоро (2–3 дня)</button>
+          <button data-filter="fresh" class="filter-btn">🟢 Свежие</button>
+        </div>
+      </div>
+      <div id="items-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+    </section>
+
+    <!-- CHEF -->
+    <section class="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 to-emerald-950 text-white shadow-2xl">
+      <h2 class="font-display font-extrabold text-2xl">🤖 AI Zero-Waste Шеф-повар</h2>
+      <p class="text-emerald-100/80 text-sm mt-1">Нейросеть придумает ужин из продуктов, которые вот-вот испортятся.</p>
+      <button id="btn-recipe" class="btn-glow mt-5 w-full px-6 py-5 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 hover:brightness-105 active:scale-[.99] transition">
+        🍳 Приготовить ужин из срочных продуктов и спасти <span id="chef-amount">0</span> ₸
+      </button>
+      <div id="recipe-box" class="mt-6"></div>
+    </section>
+  </main>
+
+  <footer class="text-center text-xs text-slate-400 py-8">EcoFridge AI · AuaHack 2026 · Астана 🌍</footer>
+
+  <!-- ADD MODAL -->
+  <div id="modal" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm grid place-items-center p-4">
+    <form id="add-form" class="modal-card w-full max-w-md bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
+      <div class="flex justify-between items-center">
+        <h3 class="font-display font-extrabold text-lg">Добавить продукт</h3>
+        <button type="button" id="modal-close" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
+      </div>
+      <input name="name" required placeholder="Название (например, Молоко 3.2%)" class="field" />
+      <select name="category" class="field">
+        <option>Молочные</option><option>Мясо и птица</option><option>Овощи</option><option>Фрукты</option>
+        <option>Хлеб и выпечка</option><option>Рыба</option><option>Готовая еда</option><option>Другое</option>
+      </select>
+      <div class="grid grid-cols-3 gap-3">
+        <label class="text-xs text-slate-500">Цена, ₸<input name="price_tenge" type="number" min="0" required value="500" class="field mt-1" /></label>
+        <label class="text-xs text-slate-500">Вес, кг<input name="weight_kg" type="number" min="0" step="0.1" required value="1" class="field mt-1" /></label>
+        <label class="text-xs text-slate-500">Дней до порчи<input name="days_left" type="number" min="0" required value="3" class="field mt-1" /></label>
+      </div>
+      <button type="submit" class="w-full py-3 rounded-2xl font-bold text-white bg-eco hover:bg-emerald-600 transition">Добавить в холодильник</button>
+    </form>
+  </div>
+
+  <!-- SCAN OVERLAY -->
+  <div id="scan-overlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm grid place-items-center p-4">
+    <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl">
+      <div class="receipt mx-auto">
+        <div class="scan-line"></div>
+        <div class="receipt-lines"></div>
+      </div>
+      <p class="font-display font-extrabold mt-5">AI распознаёт чек…</p>
+      <p id="scan-step" class="text-sm text-slate-500 mt-1 h-5"></p>
+    </div>
+  </div>
+
+  <div id="toasts" class="fixed bottom-4 right-4 left-4 sm:left-auto z-[60] flex flex-col gap-2 items-end"></div>
+
+  <script src="app.js"></script>
+</body>
+</html>
