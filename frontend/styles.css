@@ -17,6 +17,17 @@ body {
 .filter-btn:hover { border-color: #10B981; }
 .filter-btn.active { background: #10B981; color: #fff; border-color: #10B981; box-shadow: 0 6px 16px rgba(16,185,129,.3); }
 
+/* top-level tabs */
+.tab-btn {
+  padding: .9rem 1.1rem; font-size: .85rem; font-weight: 700; color: #64748b;
+  border-bottom: 3px solid transparent; white-space: nowrap; transition: all .2s;
+}
+.tab-btn:hover { color: #047857; }
+.tab-btn.active { color: #047857; border-bottom-color: #10B981; }
+.tab-panel.hidden { display: none; }
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; -ms-overflow-style: none; }
+
 .field {
   width: 100%; padding: .7rem .9rem; border: 1px solid #e2e8f0; border-radius: .9rem;
   font-size: .95rem; outline: none; background: #fff; color: #0f172a;

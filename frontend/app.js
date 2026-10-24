@@ -69,6 +69,26 @@
     $('items-count').textContent = '(' + list.length + ')';
     $('items-grid').innerHTML = list.length ? list.map(card).join('') :
       '<div class="col-span-full text-center py-12 text-slate-400">Здесь пока пусто. Отсканируйте чек — и AI всё добавит ✨</div>';
+
+    renderImpact(s);
+  }
+
+  function renderImpact(s) {
+    $('impact-saved').textContent = fmt(s.saved_tenge) + ' ₸';
+    $('impact-risk').textContent = fmt(s.at_risk_tenge) + ' ₸';
+    $('impact-co2').textContent = s.co2_saved_kg.toFixed(1) + ' кг';
+    $('impact-count').textContent = s.items_saved_count;
+    $('impact-km').textContent = fmt(s.co2_saved_kg * 5);
+    $('impact-coffee').textContent = fmt(Math.round(s.saved_tenge / 800));
+
+    const byStatus = { urgent: 0, warning: 0, fresh: 0 };
+    state.items.forEach((i) => { byStatus[i.status] = (byStatus[i.status] || 0) + 1; });
+    const total = state.items.length || 1;
+    ['urgent', 'warning', 'fresh'].forEach((st) => {
+      const pct = Math.round((byStatus[st] / total) * 100);
+      $('bar-' + st).style.width = pct + '%';
+      $('count-' + st).textContent = byStatus[st];
+    });
   }
 
   function card(i) {
@@ -199,6 +219,17 @@
       ${r.eco_tip ? `<p class="mt-4 text-sm text-slate-600 bg-slate-50 rounded-xl p-3">🌍 <b>Эко-совет:</b> ${esc(r.eco_tip)}</p>` : ''}
     </div>`;
   }
+
+  /* ---------- Tabs ---------- */
+  function setTab(tab) {
+    document.querySelectorAll('.tab-btn').forEach((b) => b.classList.toggle('active', b.dataset.tab === tab));
+    document.querySelectorAll('.tab-panel').forEach((p) => p.classList.toggle('hidden', p.dataset.tabpanel !== tab));
+    try { localStorage.setItem('ecofridge-tab', tab); } catch (_) {}
+  }
+  document.querySelectorAll('.tab-btn').forEach((b) => b.addEventListener('click', () => setTab(b.dataset.tab)));
+  let startTab = 'fridge';
+  try { startTab = localStorage.getItem('ecofridge-tab') || 'fridge'; } catch (_) {}
+  setTab(startTab);
 
   refresh();
 })();
