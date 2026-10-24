@@ -121,6 +121,15 @@ def api_add_item(item: ItemIn):
     return get_state()
 
 
+@app.delete("/api/items/{item_id}")
+def api_delete_item(item_id: str):
+    index = next((i for i, it in enumerate(STATE["items"]) if it["id"] == item_id), None)
+    if index is None:
+        raise HTTPException(status_code=404, detail="Product not found")
+    STATE["items"].pop(index)
+    return get_state()
+
+
 @app.post("/api/consume/{item_id}")
 def api_consume(item_id: str):
     index = next((i for i, it in enumerate(STATE["items"]) if it["id"] == item_id), None)
@@ -156,9 +165,12 @@ async def api_scan_receipt(request: Request):
         store_name = payload.get("store")
 
     products = None
+    recognized_by = "fallback"
     if file_bytes and (GEMINI_API_KEY or OPENAI_API_KEY):
         try:
             products = await recognize_receipt_with_ai(file_bytes)
+            if products:
+                recognized_by = "ai"
         except Exception:
             products = None
 
@@ -184,6 +196,7 @@ async def api_scan_receipt(request: Request):
         "scanned_store": store_name or DEFAULT_STORE,
         "added_items": added_items,
         "total_receipt_tenge": total_receipt_tenge,
+        "recognized_by": recognized_by,
         "state": get_state(),
     }
 
@@ -195,15 +208,19 @@ async def api_generate_recipe():
         risky_items = STATE["items"][:3]
 
     recipe = None
+    source = "fallback"
     if GEMINI_API_KEY or OPENAI_API_KEY:
         try:
             recipe = await generate_recipe_with_ai(risky_items)
+            if recipe:
+                source = "ai"
         except Exception:
             recipe = None
 
     if not recipe:
         recipe = generate_recipe_fallback(risky_items)
 
+    recipe["source"] = source
     return recipe
 
 

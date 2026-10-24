@@ -3,248 +3,116 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#143D2B" />
+  <meta name="description" content="EcoFridge AI — следи за сроками годности, используй продукты вовремя и готовь из того, что уже есть дома." />
   <title>EcoFridge AI · Astana</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23143D2B'/%3E%3Ctext x='16' y='22' font-size='18' text-anchor='middle'%3E🥬%3C/text%3E%3C/svg%3E" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Montserrat:wght@700;800&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
   <script src="https://cdn.tailwindcss.com"></script>
   <script>
-    tailwind.config = {
-      theme: { extend: {
-        fontFamily: { sans: ['Inter', 'sans-serif'], display: ['Montserrat', 'Inter', 'sans-serif'] },
-        colors: { eco: '#10B981', amber2: '#F59E0B', coral: '#EF4444' }
-      } }
-    };
+    tailwind.config = { corePlugins: { preflight: true }, theme: { extend: { fontFamily: { sans: ['Manrope', 'system-ui', 'sans-serif'] } } } };
   </script>
   <link rel="stylesheet" href="styles.css" />
 </head>
-<body class="font-sans text-slate-800 antialiased min-h-screen">
+<body class="font-sans">
+  <a href="#view" class="skip-link" id="skip-link">Перейти к содержимому</a>
 
-  <!-- HEADER -->
-  <header class="sticky top-0 z-30 backdrop-blur bg-white/80 border-b border-emerald-100">
-    <div class="max-w-6xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-400 to-emerald-600 grid place-items-center text-xl shadow-lg shadow-emerald-500/30">🥬</div>
-        <div>
-          <h1 class="font-display font-extrabold text-lg leading-tight">EcoFridge <span class="text-eco">AI</span> <span class="text-slate-400 font-semibold">· Astana</span></h1>
-          <p class="text-xs text-slate-500">Умный холодильник для семьи</p>
+  <div class="app">
+    <aside class="sidebar" aria-label="Основная навигация">
+      <a href="#/" class="brand" aria-label="EcoFridge AI — на главную">
+        <span class="brand-mark" aria-hidden="true">🥬</span>
+        <span><strong>EcoFridge AI</strong><small>Astana</small></span>
+      </a>
+      <nav id="nav" class="nav"></nav>
+      <a href="#/about" class="plan-badge" title="О тарифе">
+        <span class="plan-name">Семейный Pro</span>
+        <span class="plan-price">1 499 ₸/мес</span>
+      </a>
+    </aside>
+
+    <div class="content">
+      <header class="topbar">
+        <a href="#/" class="brand brand-mobile" aria-label="EcoFridge AI — на главную">
+          <span class="brand-mark" aria-hidden="true">🥬</span><strong>EcoFridge AI</strong>
+        </a>
+        <div class="topbar-right">
+          <a href="#/about" class="plan-chip">Семейный Pro · 1 499 ₸/мес</a>
+          <span id="status-chip" class="chip chip-muted" role="status" aria-live="polite"><span class="dot"></span><span id="status-text">Проверка связи…</span></span>
         </div>
-      </div>
-      <div class="flex items-center gap-2 flex-wrap">
-        <span class="px-3 py-1.5 rounded-full text-xs font-bold bg-gradient-to-r from-amber-100 to-amber-50 text-amber-700 border border-amber-200">👑 Семейный Pro · 1 499 ₸/мес</span>
-        <span id="api-status" class="flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold bg-slate-100 text-slate-500 border border-slate-200">
-          <span id="api-dot" class="w-2 h-2 rounded-full bg-slate-400"></span><span id="api-text">Подключение…</span>
-        </span>
-      </div>
+      </header>
+
+      <div id="demo-banner" class="demo-banner" hidden role="status"></div>
+
+      <main id="view" class="view" tabindex="-1"></main>
+
+      <footer class="footer">
+        <span>EcoFridge AI · AuaHack 2026 · Астана</span>
+        <a href="#/about">Как это работает</a>
+      </footer>
     </div>
-  </header>
+  </div>
 
-  <!-- TAB NAV -->
-  <nav class="bg-white border-b border-slate-100">
-    <div class="max-w-6xl mx-auto px-4 flex gap-1 overflow-x-auto no-scrollbar">
-      <button data-tab="fridge" class="tab-btn">🧊 Холодильник</button>
-      <button data-tab="recipes" class="tab-btn">🍳 AI Рецепты</button>
-      <button data-tab="impact" class="tab-btn">🌍 Эко-эффект</button>
-      <button data-tab="how" class="tab-btn">💡 Как это работает</button>
-    </div>
-  </nav>
+  <nav id="bottom-nav" class="bottom-nav" aria-label="Мобильная навигация"></nav>
 
-  <main class="max-w-6xl mx-auto px-4 py-8">
-
-    <!-- TAB: FRIDGE -->
-    <section data-tabpanel="fridge" class="tab-panel space-y-8">
-      <!-- KPI -->
-      <div class="grid gap-4 md:grid-cols-3">
-        <div class="kpi rounded-3xl p-6 text-white bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-xl shadow-emerald-500/25">
-          <p class="text-sm font-semibold opacity-90">💰 Спасено бюджета семьи</p>
-          <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-saved">0</span> ₸</p>
-          <p class="text-xs mt-2 opacity-80">Деньги, которые не улетели в мусорку</p>
-        </div>
-        <div class="kpi rounded-3xl p-6 text-white bg-gradient-to-br from-coral to-orange-500 shadow-xl shadow-red-500/25">
-          <p class="text-sm font-semibold opacity-90">⚠️ Сейчас под угрозой порчи</p>
-          <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-risk">0</span> ₸</p>
-          <p class="text-xs mt-2 opacity-80">Сумма срочных и скоро портящихся продуктов</p>
-        </div>
-        <div class="kpi rounded-3xl p-6 bg-gradient-to-br from-teal-50 to-emerald-100 border border-emerald-200 text-emerald-900 shadow-xl shadow-emerald-200/40">
-          <p class="text-sm font-semibold">🌱 Предотвращено выбросов метана</p>
-          <p class="font-display font-extrabold text-4xl mt-2"><span id="kpi-co2">0</span> <span class="text-lg">кг CO₂-экв</span></p>
-          <p class="text-xs mt-2 text-emerald-700"><span id="kpi-count">0</span> продуктов спасено от полигона Астаны</p>
-        </div>
+  <!-- Add item -->
+  <dialog id="add-dialog" class="modal" aria-labelledby="add-title">
+    <form id="add-form" novalidate>
+      <div class="modal-head">
+        <h2 id="add-title">Добавить продукт</h2>
+        <button type="button" class="icon-btn" data-close aria-label="Закрыть">✕</button>
       </div>
-
-      <!-- ACTIONS -->
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
-        <h2 class="font-display font-extrabold text-lg mb-4">Быстрые действия</h2>
-        <div class="flex flex-col lg:flex-row gap-3">
-          <button id="btn-demo" class="btn-glow flex-1 px-6 py-4 rounded-2xl font-bold text-white bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-600 hover:to-teal-600 active:scale-[.98] transition">
-            ⚡ Демо за 1 клик: Сканировать чек Magnum (Kaspi QR / Фото)
-          </button>
-          <label class="px-5 py-4 rounded-2xl font-semibold text-center cursor-pointer border-2 border-dashed border-emerald-300 text-emerald-700 hover:bg-emerald-50 transition">
-            📷 Загрузить фото чека / холодильника
-            <input id="file-input" type="file" accept="image/*" class="hidden" />
-          </label>
-          <button id="btn-add" class="px-5 py-4 rounded-2xl font-semibold border border-slate-200 hover:bg-slate-50 transition">+ Добавить продукт вручную</button>
+      <p id="add-mode-note" class="field-hint"></p>
+      <div class="field">
+        <label for="f-name">Название</label>
+        <input id="f-name" name="name" type="text" maxlength="80" autocomplete="off" required aria-describedby="e-name" placeholder="Например, Молоко 2.5%" />
+        <p class="field-error" id="e-name" role="alert"></p>
+      </div>
+      <div class="field">
+        <label for="f-category">Категория</label>
+        <select id="f-category" name="category"></select>
+      </div>
+      <div class="field-row">
+        <div class="field">
+          <label for="f-price">Цена, ₸</label>
+          <input id="f-price" name="price_tenge" type="number" inputmode="numeric" min="0" max="1000000" step="1" value="500" required aria-describedby="e-price" />
+          <p class="field-error" id="e-price" role="alert"></p>
+        </div>
+        <div class="field">
+          <label for="f-weight">Вес, кг</label>
+          <input id="f-weight" name="weight_kg" type="number" inputmode="decimal" min="0.01" max="50" step="0.01" value="1" required aria-describedby="e-weight" />
+          <p class="field-error" id="e-weight" role="alert"></p>
+        </div>
+        <div class="field">
+          <label for="f-days">Дней до конца срока</label>
+          <input id="f-days" name="days_left" type="number" inputmode="numeric" min="0" max="365" step="1" value="3" required aria-describedby="e-days" />
+          <p class="field-error" id="e-days" role="alert"></p>
         </div>
       </div>
-
-      <!-- FRIDGE ITEMS -->
-      <div>
-        <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-          <h2 class="font-display font-extrabold text-xl">🧊 Умный холодильник <span id="items-count" class="text-slate-400 text-base font-semibold"></span></h2>
-          <div id="filters" class="flex flex-wrap gap-2">
-            <button data-filter="all" class="filter-btn active">Все</button>
-            <button data-filter="urgent" class="filter-btn">🔴 Срочно (1 день)</button>
-            <button data-filter="warning" class="filter-btn">🟡 Скоро (2–3 дня)</button>
-            <button data-filter="fresh" class="filter-btn">🟢 Свежие</button>
-          </div>
-        </div>
-        <div id="items-grid" class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3"></div>
+      <p class="field-error" id="e-form" role="alert"></p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+        <button type="submit" class="btn btn-primary" id="add-submit">Добавить в холодильник</button>
       </div>
-    </section>
-
-    <!-- TAB: RECIPES -->
-    <section data-tabpanel="recipes" class="tab-panel hidden space-y-6">
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
-        <h2 class="font-display font-extrabold text-lg mb-2">Как работает AI-шеф?</h2>
-        <p class="text-sm text-slate-500">Нейросеть смотрит на продукты со статусом 🔴 «срочно» и 🟡 «скоро» и придумывает рецепт именно из них, чтобы они не оказались на полигоне Астаны. Если AI недоступен — срабатывает умный офлайн-генератор, рецепт всё равно появится за полсекунды.</p>
-      </div>
-      <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 to-emerald-950 text-white shadow-2xl">
-        <h2 class="font-display font-extrabold text-2xl">🤖 AI Zero-Waste Шеф-повар</h2>
-        <p class="text-emerald-100/80 text-sm mt-1">Нейросеть придумает ужин из продуктов, которые вот-вот испортятся.</p>
-        <button id="btn-recipe" class="btn-glow mt-5 w-full px-6 py-5 rounded-2xl font-extrabold text-lg bg-gradient-to-r from-amber-400 to-orange-500 text-slate-900 hover:brightness-105 active:scale-[.99] transition">
-          🍳 Приготовить ужин из срочных продуктов и спасти <span id="chef-amount">0</span> ₸
-        </button>
-        <div id="recipe-box" class="mt-6"></div>
-      </div>
-    </section>
-
-    <!-- TAB: IMPACT -->
-    <section data-tabpanel="impact" class="tab-panel hidden space-y-6">
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
-        <h2 class="font-display font-extrabold text-lg mb-1">🌍 Эко-эффект твоей семьи</h2>
-        <p class="text-sm text-slate-500">Вся экономия и спасённые продукты с начала использования EcoFridge AI.</p>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div class="rounded-3xl p-6 text-white bg-gradient-to-br from-emerald-500 to-emerald-700 shadow-xl shadow-emerald-500/25">
-          <p class="text-sm font-semibold opacity-90">💰 Всего сэкономлено</p>
-          <p class="font-display font-extrabold text-3xl mt-2"><span id="impact-saved">0 ₸</span></p>
-          <p class="text-xs mt-2 opacity-80">≈ <span id="impact-coffee">0</span> чашек кофе в любимой кофейне</p>
-        </div>
-        <div class="rounded-3xl p-6 text-white bg-gradient-to-br from-teal-500 to-emerald-700 shadow-xl shadow-emerald-500/25">
-          <p class="text-sm font-semibold opacity-90">🌱 Предотвращено CO₂-экв</p>
-          <p class="font-display font-extrabold text-3xl mt-2"><span id="impact-co2">0 кг</span></p>
-          <p class="text-xs mt-2 opacity-80">≈ как не проехать <span id="impact-km">0</span> км на бензиновом авто</p>
-        </div>
-      </div>
-
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
-        <h3 class="font-display font-extrabold text-base mb-1">📦 Продуктов спасено от мусорки</h3>
-        <p class="font-display font-extrabold text-3xl text-emerald-700"><span id="impact-count">0</span></p>
-        <p class="text-xs text-slate-500 mt-1">Сейчас под угрозой на <span id="impact-risk">0 ₸</span> — успей использовать!</p>
-      </div>
-
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6">
-        <h3 class="font-display font-extrabold text-base mb-4">🧊 Текущий состав холодильника</h3>
-        <div class="space-y-3">
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1"><span>🔴 Срочно</span><span id="count-urgent">0</span></div>
-            <div class="h-2.5 rounded-full bg-slate-100"><div id="bar-urgent" class="h-2.5 rounded-full bg-coral transition-all" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1"><span>🟡 Скоро</span><span id="count-warning">0</span></div>
-            <div class="h-2.5 rounded-full bg-slate-100"><div id="bar-warning" class="h-2.5 rounded-full bg-amber2 transition-all" style="width:0%"></div></div>
-          </div>
-          <div>
-            <div class="flex justify-between text-xs font-semibold mb-1"><span>🟢 Свежие</span><span id="count-fresh">0</span></div>
-            <div class="h-2.5 rounded-full bg-slate-100"><div id="bar-fresh" class="h-2.5 rounded-full bg-eco transition-all" style="width:0%"></div></div>
-          </div>
-        </div>
-      </div>
-    </section>
-
-    <!-- TAB: HOW IT WORKS -->
-    <section data-tabpanel="how" class="tab-panel hidden space-y-6">
-      <div class="rounded-3xl p-6 sm:p-8 bg-gradient-to-br from-slate-900 to-emerald-950 text-white shadow-2xl">
-        <h2 class="font-display font-extrabold text-2xl">💡 Как работает EcoFridge AI</h2>
-        <p class="text-emerald-100/80 text-sm mt-2 max-w-2xl">Казахстанские семьи ежегодно выбрасывают тонны продуктов просто потому, что забывают их съесть вовремя. Это деньги на ветер и лишний метан на полигонах Астаны. EcoFridge AI — цифровой холодильник, который следит за сроками годности за вас.</p>
-      </div>
-
-      <div class="grid gap-4 sm:grid-cols-2">
-        <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 flex gap-4">
-          <span class="shrink-0 w-10 h-10 rounded-full bg-eco text-white font-extrabold grid place-items-center">1</span>
-          <div>
-            <h3 class="font-bold">Сканируй или добавляй продукты</h3>
-            <p class="text-sm text-slate-500 mt-1">Сфотографируй чек из магазина (или нажми демо-кнопку) — AI сам распознает товары, цену и срок хранения. Можно и вручную — кнопка «+ Добавить продукт».</p>
-          </div>
-        </div>
-        <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 flex gap-4">
-          <span class="shrink-0 w-10 h-10 rounded-full bg-eco text-white font-extrabold grid place-items-center">2</span>
-          <div>
-            <h3 class="font-bold">Следи за статусом в холодильнике</h3>
-            <p class="text-sm text-slate-500 mt-1">Каждый продукт подсвечивается: 🔴 съешь сегодня-завтра, 🟡 скоро испортится, 🟢 ещё свежий. Фильтры наверху помогают быстро найти, что горит.</p>
-          </div>
-        </div>
-        <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 flex gap-4">
-          <span class="shrink-0 w-10 h-10 rounded-full bg-eco text-white font-extrabold grid place-items-center">3</span>
-          <div>
-            <h3 class="font-bold">Жми «Съели ✅»</h3>
-            <p class="text-sm text-slate-500 mt-1">Успел использовать продукт — отметь это. Деньги и кг CO₂-экв сразу прибавятся во вкладке «Эко-эффект».</p>
-          </div>
-        </div>
-        <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 flex gap-4">
-          <span class="shrink-0 w-10 h-10 rounded-full bg-eco text-white font-extrabold grid place-items-center">4</span>
-          <div>
-            <h3 class="font-bold">Спроси AI-шефа</h3>
-            <p class="text-sm text-slate-500 mt-1">Если что-то вот-вот испортится — вкладка «AI Рецепты» предложит блюдо именно из этих продуктов, чтобы ничего не пропало.</p>
-          </div>
-        </div>
-      </div>
-
-      <div class="rounded-3xl bg-white border border-slate-100 shadow-sm p-5 sm:p-6 text-center text-sm text-slate-500">
-        Сделано на эко-хакатоне <span class="font-semibold text-emerald-700">AuaHack 2026</span> в Астане 🌍
-      </div>
-    </section>
-
-  </main>
-
-  <footer class="text-center text-xs text-slate-400 py-8">EcoFridge AI · AuaHack 2026 · Астана 🌍</footer>
-
-  <!-- ADD MODAL -->
-  <div id="modal" class="hidden fixed inset-0 z-40 bg-slate-900/50 backdrop-blur-sm grid place-items-center p-4">
-    <form id="add-form" class="modal-card w-full max-w-md bg-white rounded-3xl p-6 space-y-4 shadow-2xl">
-      <div class="flex justify-between items-center">
-        <h3 class="font-display font-extrabold text-lg">Добавить продукт</h3>
-        <button type="button" id="modal-close" class="text-slate-400 hover:text-slate-700 text-2xl leading-none">×</button>
-      </div>
-      <input name="name" required placeholder="Название (например, Молоко 3.2%)" class="field" />
-      <select name="category" class="field">
-        <option>Молочные</option><option>Мясо и птица</option><option>Овощи</option><option>Фрукты</option>
-        <option>Хлеб и выпечка</option><option>Рыба</option><option>Готовая еда</option><option>Другое</option>
-      </select>
-      <div class="grid grid-cols-3 gap-3">
-        <label class="text-xs text-slate-500">Цена, ₸<input name="price_tenge" type="number" min="0" required value="500" class="field mt-1" /></label>
-        <label class="text-xs text-slate-500">Вес, кг<input name="weight_kg" type="number" min="0" step="0.1" required value="1" class="field mt-1" /></label>
-        <label class="text-xs text-slate-500">Дней до порчи<input name="days_left" type="number" min="0" required value="3" class="field mt-1" /></label>
-      </div>
-      <button type="submit" class="w-full py-3 rounded-2xl font-bold text-white bg-eco hover:bg-emerald-600 transition">Добавить в холодильник</button>
     </form>
-  </div>
+  </dialog>
 
-  <!-- SCAN OVERLAY -->
-  <div id="scan-overlay" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-sm grid place-items-center p-4">
-    <div class="bg-white rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl">
-      <div class="receipt mx-auto">
-        <div class="scan-line"></div>
-        <div class="receipt-lines"></div>
+  <!-- Confirm delete -->
+  <dialog id="confirm-dialog" class="modal modal-sm" aria-labelledby="confirm-title">
+    <form method="dialog" id="confirm-form">
+      <h2 id="confirm-title">Удалить продукт?</h2>
+      <p id="confirm-text" class="muted"></p>
+      <p class="field-hint">Удаление не засчитывается как «съели» и не влияет на экономию.</p>
+      <div class="modal-actions">
+        <button type="button" class="btn btn-ghost" data-close>Отмена</button>
+        <button type="submit" class="btn btn-danger" id="confirm-ok" value="ok">Удалить</button>
       </div>
-      <p class="font-display font-extrabold mt-5">AI распознаёт чек…</p>
-      <p id="scan-step" class="text-sm text-slate-500 mt-1 h-5"></p>
-    </div>
-  </div>
+    </form>
+  </dialog>
 
-  <div id="toasts" class="fixed bottom-4 right-4 left-4 sm:left-auto z-[60] flex flex-col gap-2 items-end"></div>
+  <div id="toasts" class="toasts" aria-live="polite" aria-atomic="false"></div>
 
-  <script src="app.js"></script>
+  <script type="module" src="app.js"></script>
 </body>
 </html>
