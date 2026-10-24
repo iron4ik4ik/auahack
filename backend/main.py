@@ -3,13 +3,17 @@ import json
 import os
 import re
 from pathlib import Path
+import logging
+import threading
 from typing import Optional
 
 import httpx
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from pydantic import BaseModel
+from pydantic import BaseModel, Field, field_validator
+
+logger = logging.getLogger("ecofridge")
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 FRONTEND_DIR = BASE_DIR / "frontend"
@@ -55,28 +59,55 @@ def make_item(item_id, name, category, price_tenge, weight_kg, days_left) -> dic
 
 
 def seed_state() -> dict:
+    """Чистое стартовое состояние: пустой холодильник и нулевая статистика (без выдуманных цифр)."""
     return {
         "stats": {
-            "saved_tenge": 14850,
-            "at_risk_tenge": 4120,
-            "co2_saved_kg": 6.4,
-            "items_saved_count": 18,
-            "donated_tenge": 3200,
-            "meals_donated": 4,
+            "saved_tenge": 0,
+            "at_risk_tenge": 0,
+            "co2_saved_kg": 0.0,
+            "items_saved_count": 0,
+            "donated_tenge": 0,
+            "meals_donated": 0,
         },
-        "items": [
-            make_item(1, "Молоко «Родина» 2.5%, 1л", "Молочные продукты", 680, 1.0, 1),
-            make_item(2, "Фарш говяжий охлажденный", "Мясо и птица", 2850, 0.5, 1),
-            make_item(3, "Шпинат свежий", "Овощи и фрукты", 590, 0.2, 2),
-            make_item(4, "Сметана President 20%", "Молочные продукты", 890, 0.4, 3),
-            make_item(5, "Творог «Мое» 5%", "Молочные продукты", 740, 0.35, 2),
-            make_item(6, "Яблоки Айдаред", "Овощи и фрукты", 950, 1.5, 8),
-        ],
+        "items": [],
     }
 
 
-STATE = seed_state()
-NEXT_ID = 7
+# Состояние сохраняется в JSON-файл, чтобы переживать перезапуск процесса.
+# На бесплатном Render диск эфемерный — для постоянного хранения укажите ECOFRIDGE_DATA_FILE на смонтированный том.
+DATA_FILE = Path(os.getenv("ECOFRIDGE_DATA_FILE", str(BASE_DIR / "data" / "state.json")))
+_LOCK = threading.Lock()
+
+
+def load_state() -> dict:
+    try:
+        data = json.loads(DATA_FILE.read_text(encoding="utf-8"))
+        base = seed_state()
+        base["stats"].update(data.get("stats", {}))
+        base["items"] = [
+            make_item(i["id"], i["name"], i["category"], i["price_tenge"], i["weight_kg"], i["days_left"])
+            for i in data.get("items", [])
+        ]
+        return base
+    except FileNotFoundError:
+        return seed_state()
+    except Exception:
+        logger.exception("Не удалось прочитать %s, стартуем с чистого состояния", DATA_FILE)
+        return seed_state()
+
+
+def save_state() -> None:
+    try:
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        tmp = DATA_FILE.with_suffix(".tmp")
+        tmp.write_text(json.dumps(STATE, ensure_ascii=False), encoding="utf-8")
+        tmp.replace(DATA_FILE)
+    except Exception:
+        logger.exception("Не удалось сохранить состояние в %s", DATA_FILE)
+
+
+STATE = load_state()
+NEXT_ID = max([int(i["id"]) for i in STATE["items"] if str(i["id"]).isdigit()] + [0]) + 1
 
 
 def next_id() -> int:
@@ -93,21 +124,45 @@ def get_state() -> dict:
     return STATE
 
 
+def commit() -> dict:
+    """Сохраняет состояние на диск и возвращает его — вызывается после каждой мутации."""
+    with _LOCK:
+        save_state()
+    return get_state()
+
+
 # ---------------------------------------------------------------------------
 # Models
 # ---------------------------------------------------------------------------
 
 class ItemIn(BaseModel):
-    name: str
-    category: str
-    price_tenge: int
-    weight_kg: float
-    days_left: int
+    name: str = Field(min_length=1, max_length=80)
+    category: str = Field(default="Другое", max_length=60)
+    price_tenge: int = Field(ge=0, le=1_000_000)
+    weight_kg: float = Field(gt=0, le=50)
+    days_left: int = Field(ge=0, le=365)
+
+    @field_validator("name", "category")
+    @classmethod
+    def strip_text(cls, value: str) -> str:
+        value = value.strip()
+        if not value:
+            raise ValueError("must not be blank")
+        return value
 
 
 # ---------------------------------------------------------------------------
 # Routes
 # ---------------------------------------------------------------------------
+
+@app.get("/api/health")
+def api_health():
+    return {
+        "status": "ok",
+        "items": len(STATE["items"]),
+        "ai_enabled": bool(GEMINI_API_KEY or OPENAI_API_KEY),
+    }
+
 
 @app.get("/api/state")
 def api_get_state():
@@ -120,7 +175,7 @@ def api_add_item(item: ItemIn):
         next_id(), item.name, item.category, item.price_tenge, item.weight_kg, item.days_left
     )
     STATE["items"].append(new_item)
-    return get_state()
+    return commit()
 
 
 @app.delete("/api/items/{item_id}")
@@ -129,7 +184,7 @@ def api_delete_item(item_id: str):
     if index is None:
         raise HTTPException(status_code=404, detail="Product not found")
     STATE["items"].pop(index)
-    return get_state()
+    return commit()
 
 
 @app.post("/api/consume/{item_id}")
@@ -144,7 +199,7 @@ def api_consume(item_id: str):
         STATE["stats"]["co2_saved_kg"] + round(item["weight_kg"] * 2.5, 2), 2
     )
     STATE["stats"]["items_saved_count"] += 1
-    return get_state()
+    return commit()
 
 
 @app.post("/api/donate/{item_id}")
@@ -160,7 +215,7 @@ def api_donate(item_id: str):
         STATE["stats"]["co2_saved_kg"] + round(item["weight_kg"] * 2.5, 2), 2
     )
     STATE["stats"]["meals_donated"] += max(1, round(item["weight_kg"] / 0.4))
-    return get_state()
+    return commit()
 
 
 @app.post("/api/scan-receipt")
@@ -215,13 +270,15 @@ async def api_scan_receipt(request: Request):
         "added_items": added_items,
         "total_receipt_tenge": total_receipt_tenge,
         "recognized_by": recognized_by,
-        "state": get_state(),
+        "state": commit(),
     }
 
 
 @app.post("/api/generate-recipe")
 async def api_generate_recipe():
     risky_items = [it for it in STATE["items"] if it["status"] in ("urgent", "warning")]
+    if not STATE["items"]:
+        raise HTTPException(status_code=400, detail="Холодильник пуст — добавьте продукты")
     if not risky_items:
         risky_items = STATE["items"][:3]
 
